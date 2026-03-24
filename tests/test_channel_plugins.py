@@ -165,7 +165,10 @@ async def test_manager_loads_plugin_from_dict_config():
         channels=ChannelsConfig.model_validate({
             "fakeplugin": {"enabled": True, "allowFrom": ["*"]},
         }),
-        providers=SimpleNamespace(groq=SimpleNamespace(api_key="")),
+        providers=SimpleNamespace(
+            groq=SimpleNamespace(api_key=""),
+            openai=SimpleNamespace(api_key=""),
+        ),
     )
 
     with patch(
@@ -189,7 +192,10 @@ async def test_manager_skips_disabled_plugin():
         channels=ChannelsConfig.model_validate({
             "fakeplugin": {"enabled": False},
         }),
-        providers=SimpleNamespace(groq=SimpleNamespace(api_key="")),
+        providers=SimpleNamespace(
+            groq=SimpleNamespace(api_key=""),
+            openai=SimpleNamespace(api_key=""),
+        ),
     )
 
     with patch(
