@@ -35,6 +35,21 @@ class ChannelManager:
         from nanobot.channels.registry import discover_all
 
         groq_key = self.config.providers.groq.api_key
+        openai_key = self.config.providers.openai.api_key
+
+        # Determine transcription credentials: prefer Groq, fall back to OpenAI
+        if groq_key:
+            t_key = groq_key
+            t_url = "https://api.groq.com/openai/v1/audio/transcriptions"
+            t_model = "whisper-large-v3"
+        elif openai_key:
+            t_key = openai_key
+            t_url = "https://api.openai.com/v1/audio/transcriptions"
+            t_model = "whisper-1"
+        else:
+            t_key = ""
+            t_url = ""
+            t_model = "whisper-large-v3"
 
         for name, cls in discover_all().items():
             section = getattr(self.config.channels, name, None)
@@ -49,7 +64,9 @@ class ChannelManager:
                 continue
             try:
                 channel = cls(section, self.bus)
-                channel.transcription_api_key = groq_key
+                channel.transcription_api_key = t_key
+                channel.transcription_api_url = t_url
+                channel.transcription_model = t_model
                 self.channels[name] = channel
                 logger.info("{} channel enabled", cls.display_name)
             except Exception as e:
