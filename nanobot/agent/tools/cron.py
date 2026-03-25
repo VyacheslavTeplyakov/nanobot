@@ -60,11 +60,11 @@ class CronTool(Tool):
                 },
                 "tz": {
                     "type": "string",
-                    "description": "IANA timezone for cron expressions (e.g. 'America/Vancouver')",
+                    "description": "IANA timezone (e.g. 'Europe/Moscow')",
                 },
                 "at": {
                     "type": "string",
-                    "description": "ISO datetime for one-time execution (e.g. '2026-02-12T10:30:00')",
+                    "description": "ISO datetime for one-time execution (e.g. '2026-02-12T10:30:00'). Use with 'tz' if needed.",
                 },
                 "job_id": {"type": "string", "description": "Job ID (for remove)"},
             },
@@ -104,8 +104,8 @@ class CronTool(Tool):
             return "Error: message is required for add"
         if not self._channel or not self._chat_id:
             return "Error: no session context (channel/chat_id)"
-        if tz and not cron_expr:
-            return "Error: tz can only be used with cron_expr"
+        if tz and not (cron_expr or at):
+            return "Error: tz can only be used with cron_expr or at"
         if tz:
             from zoneinfo import ZoneInfo
 
@@ -124,9 +124,14 @@ class CronTool(Tool):
             from datetime import datetime
 
             try:
-                dt = datetime.fromisoformat(at)
+                dt = datetime.fromisoformat(at.replace("Z", "+00:00"))
             except ValueError:
                 return f"Error: invalid ISO datetime format '{at}'. Expected format: YYYY-MM-DDTHH:MM:SS"
+            
+            if dt.tzinfo is None and tz:
+                from zoneinfo import ZoneInfo
+                dt = dt.replace(tzinfo=ZoneInfo(tz))
+                
             at_ms = int(dt.timestamp() * 1000)
             schedule = CronSchedule(kind="at", at_ms=at_ms)
             delete_after = True
