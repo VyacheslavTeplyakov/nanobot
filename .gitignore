@@ -33,6 +33,8 @@ patch_web.py
 core_agent_lines.sh
 cleanup_git.bat
 yandex_commute.py
+weather.py
+script.py
 
 # Personal documentation (contains sensitive data)
 *.md
